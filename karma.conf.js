@@ -14,12 +14,6 @@ function getBrowsersFor(feature) {
 	const browserstackBrowsers = require('./test/polyfills/browserstackBrowsers.json');
 
 	const browsersWeSupport = browserlist.filter(uaString => new UA(uaString).meetsBaseline());
-	const browsersWeSupportForThisFeature = browsersWeSupport.filter(uaString => {
-		const meta = require(path.resolve(__dirname, 'polyfills', feature, 'config.json'));
-		const ua = new UA(uaString);
-		const isBrowserMatch = meta.browsers && meta.browsers[ua.getFamily()] && ua.satisfies(meta.browsers[ua.getFamily()]);
-		return isBrowserMatch;
-	});
 
 	function useragentToBrowserObj(browserWithVersion) {
 		const [browser, version] = browserWithVersion.split("/");
@@ -43,7 +37,7 @@ function getBrowsersFor(feature) {
 		}
 	}
 
-	const browsersWeSupportInBrowserStack = browsersWeSupportForThisFeature.map(useragentToBrowserObj).reduce(function (acc, cur) {
+	const browsersWeSupportInBrowserStack = browsersWeSupport.map(useragentToBrowserObj).reduce(function (acc, cur) {
 		acc[cur.name] = cur;
 		return acc;
 	}, {});
