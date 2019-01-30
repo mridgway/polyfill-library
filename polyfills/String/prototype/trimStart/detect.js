@@ -1,0 +1,1 @@
+'trimStart' in String.prototype

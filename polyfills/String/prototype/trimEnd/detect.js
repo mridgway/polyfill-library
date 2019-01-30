@@ -1,0 +1,1 @@
+'trimEnd' in String.prototype
