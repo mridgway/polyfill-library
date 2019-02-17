@@ -814,6 +814,11 @@ jobs:
           command: node ./test/polyfills/test-individual-feature.js
             String.prototype.includes
       - run:
+          name: Testing String.prototype.normalize
+          no_output_timeout: 60m
+          command: node ./test/polyfills/test-individual-feature.js
+            String.prototype.normalize
+      - run:
           name: Testing String.prototype.padEnd
           no_output_timeout: 60m
           command: node ./test/polyfills/test-individual-feature.js
@@ -828,17 +833,17 @@ jobs:
           no_output_timeout: 60m
           command: node ./test/polyfills/test-individual-feature.js
             String.prototype.repeat
-      - run:
-          name: Testing String.prototype.startsWith
-          no_output_timeout: 60m
-          command: node ./test/polyfills/test-individual-feature.js
-            String.prototype.startsWith
   test_16:
     docker:
       - image: circleci/node:10
     steps:
       - checkout
       - run: npm ci
+      - run:
+          name: Testing String.prototype.startsWith
+          no_output_timeout: 60m
+          command: node ./test/polyfills/test-individual-feature.js
+            String.prototype.startsWith
       - run:
           name: Testing String.prototype.trim
           no_output_timeout: 60m
