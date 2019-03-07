@@ -24,12 +24,12 @@
     ],
     "license": "Apache-2.0",
     "spec": "https://dom.spec.whatwg.org/#interface-abortcontroller",
-    "repo": "https://github.com/mysticatea/abort-controller",
+    "repo": "https://github.com/caub/abortcontroller-polyfill#babel",
     "docs": "https://developer.mozilla.org/en-US/docs/Web/API/AbortController",
     "install": {
-        "module": "abort-controller",
+        "module": "abortcontroller-polyfill",
         "paths": [
-            "dist/abort-controller.umd.js"
+            "dist/umd-polyfill.js"
         ]
     }
 }
