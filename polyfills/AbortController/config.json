@@ -19,7 +19,8 @@
         "Object.getPrototypeOf",
         "Object.setPrototypeOf",
         "Event",
-        "Symbol"
+        "Symbol",
+        "WeakMap"
     ],
     "license": "Apache-2.0",
     "spec": "https://dom.spec.whatwg.org/#interface-abortcontroller",
