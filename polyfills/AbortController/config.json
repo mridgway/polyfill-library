@@ -24,7 +24,7 @@
     ],
     "license": "Apache-2.0",
     "spec": "https://dom.spec.whatwg.org/#interface-abortcontroller",
-    "repo": "https://github.com/caub/abortcontroller-polyfill#babel",
+    "repo": "https://github.com/mo/abortcontroller-polyfill",
     "docs": "https://developer.mozilla.org/en-US/docs/Web/API/AbortController",
     "install": {
         "module": "abortcontroller-polyfill",
