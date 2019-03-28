@@ -18,22 +18,16 @@ describe('AbortSignal', function () {
         proclaim.isNotEnumerable(window, 'AbortSignal');
     });
 
+    // Copied from https://github.com/mo/abortcontroller-polyfill/blob/master/tests/basic.test.js
     describe('basic tests', function () {
-
-        it('AbortSignal constructor', function () {
-            var signal = new AbortSignal();
-            proclaim.isFalse(signal.aborted);
-            proclaim.isNull(signal.onabort);
-        });
-
-        it('Request is patched', function () {
+        it('Request object has .signal', function () {
             var controller = new AbortController();
             var signal = controller.signal;
             var request = new Request('/', {
                 signal: signal
             });
-            proclaim.deepStrictEqual(request.signal, signal);
-            proclaim.isTrue(Request.prototype.isPrototypeOf(request));
+            proclaim.ok(request.signal);
+            proclaim.ok(Request.prototype.isPrototypeOf(request));
         });
 
         it('abort during fetch', function (done) {
@@ -68,13 +62,14 @@ describe('AbortSignal', function () {
             setTimeout(function () {
                 controller.abort();
             }, 500);
-            var request = new Request('http://httpstat.us/200?sleep=1000', {
+            var request = new Request('https://httpstat.us/200?sleep=1000', {
                 signal: signal
             });
-            fetch(request).then(function () {
-                proclaim.isUndefined('abort during fetch when Request has signal failed');
+            return fetch(request).then(function () {
+                proclaim.isUndefined('Abort during fetch failed.');
             }, function (err) {
                 proclaim.deepStrictEqual(err.name, 'AbortError');
+                done();
             });
         });
 
@@ -87,40 +82,39 @@ describe('AbortSignal', function () {
             var controller = new AbortController();
             controller.abort();
             var signal = controller.signal;
-            fetch('http://httpstat.us/200?sleep=1000', {
+            return fetch('https://httpstat.us/200?sleep=1000', {
                 signal: signal
             }).then(function () {
-                proclaim.isUndefined('abort before fetch started failed');
+                proclaim.isUndefined('Abort during fetch failed.');
             }, function (err) {
                 proclaim.deepStrictEqual(err.name, 'AbortError');
+                done();
             });
         });
 
-        //   it('abort before fetch started, verify no HTTP request is made', function() {
-        //     var server = http.createServer((req, res) => {
-        //       fail('fetch() made an HTTP request despite pre-aborted signal');
-        //     }).listen(0);
-        //     var boundListenPort = server.address().port;
-        //     browser.url(TESTPAGE_URL);
-        //     var res = browser.executeAsync(async (boundListenPort, done) => {
-        //       setTimeout(function() {
-        //         done({name: 'fail'});
-        //       }, 2000);
-        //       var controller = new AbortController();
-        //       controller.abort();
-        //       var signal = controller.signal;
-        //       try {
-        //         await fetch(`http://127.0.0.1:${boundListenPort}`, {signal});
-        //         done({name: 'fail'});
-        //       } catch (err) {
-        //         done(err);
-        //       }
-        //     }, boundListenPort);
-        //     var err = res.value;
-        //     expect(err.name).toBe('AbortError');
-        //     expect(getJSErrors().length).toBe(0);
-        //     server.close();
-        //   });
+        // it('abort before fetch started, verify no HTTP request is made', function() {
+        //   var server = http.createServer((req, res) => {
+        //     fail('fetch() made an HTTP request despite pre-aborted signal');
+        //   }).listen(0);
+        //   var boundListenPort = server.address().port;
+        //   browser.url(TESTPAGE_URL);
+        //   var err = browser.executeAsync(async (boundListenPort, done) => {
+        //     setTimeout(function() {
+        //       done({name: 'fail'});
+        //     }, 2000);
+        //     var controller = new AbortController();
+        //     controller.abort();
+        //     var signal = controller.signal;
+        //     try {
+        //       await fetch('http://127.0.0.1:${boundListenPort}', {signal: signal});
+        //       done({name: 'fail'});
+        //     } catch (err) {
+        //       done(err);
+        //     }
+        //   }, boundListenPort);
+        //   expect(err.name).toBe('AbortError');
+        //   server.close();
+        // });
 
         it('fetch without aborting', function (done) {
             setTimeout(function () {
@@ -130,27 +124,18 @@ describe('AbortSignal', function () {
             }, 2000);
             var controller = new AbortController();
             var signal = controller.signal;
-            fetch('http://httpstat.us/200?sleep=50', {
+            return fetch('https://httpstat.us/200?sleep=50', {
                 signal: signal
-            }).then(function () {
-                done();
-            }, function (err) {
-                done(err);
             });
         });
 
-        it('fetch without signal set', function (done) {
+        it('fetch without signal set', function () {
             setTimeout(function () {
                 done({
                     name: 'fail'
                 });
             }, 2000);
-            fetch('http://httpstat.us/200?sleep=50').then(function () {
-                done();
-
-            }, function (err) {
-                done(err);
-            });
+            return fetch('https://httpstat.us/200?sleep=50');
         });
 
         it('event listener fires "abort" event', function (done) {
@@ -172,16 +157,11 @@ describe('AbortSignal', function () {
             }, 2000);
             var controller = new AbortController();
             controller.signal.addEventListener('abort', function () {
-                if (controller.signal.aborted === true) {
-                    done();
-                } else {
-                    done('FAIL');
-                }
+                proclaim.isTrue(controller.signal.aborted);
+                done();
             });
             controller.abort();
-            if (controller.signal.aborted !== true) {
-                done('FAIL');
-            }
+            proclaim.isTrue(controller.signal.aborted);
         });
 
         it('event listener doesn\'t fire "abort" event after removeEventListener', function (done) {
@@ -208,49 +188,10 @@ describe('AbortSignal', function () {
             controller.abort();
         });
 
-        //   it('fetch from web worker works', function() {
-        //     // Need to load from webserver because worker because security policy
-        //     // prevents file:// pages from "loading arbitrary .js files" as workers.
-        //     var server = http.createServer((req, res) => {
-        //       if (req.url === '/') {
-        //         // No need to load polyfill in main JS context, we're only gonna run it
-        //         // inside the worker only
-        //         res.end('');
-        //       } else if (req.url === '/umd-polyfill.js') {
-        //         res.end(fs.readFileSync(path.join(__dirname, '../dist/umd-polyfill.js')));
-        //       } else if (req.url === '/web-worker.js') {
-        //         res.end(fs.readFileSync(path.join(__dirname, 'web-worker.js')));
-        //       }
-        //     }).listen(0);
-        //     var boundListenPort = server.address().port;
-
-        //     browser.url(`http://127.0.0.1:${boundListenPort}`);
-        //     var res = browser.executeAsync(async (done) => {
-        //       setTimeout(function() {
-        //         done('FAIL');
-        //       }, 2000);
-        //       var worker = new Worker('web-worker.js');
-        //       worker.postMessage('run-test');
-        //       worker.onmessage = (ev) => {
-        //         var result = ev.data;
-        //         done(result);
-        //       };
-        //     });
-        //     expect(res.value).toBe('PASS');
-        //     expect(getJSErrors().length).toBe(0);
-        //     server.close();
-        //   });
-
         it('toString() output', function () {
-            proclaim.deepStrictEqual(new AbortController().toString(), '[object AbortSignal]');
-
-            proclaim.deepStrictEqual(Object.prototype.toString.call(new AbortController()), '[object AbortSignal]');
-
+            proclaim.deepStrictEqual(new AbortController().toString(), '[object AbortController]');
+            proclaim.deepStrictEqual(Object.prototype.toString.call(new AbortController()), '[object AbortController]');
             proclaim.deepStrictEqual(new AbortController().signal.toString(), '[object AbortSignal]');
-
-            proclaim.deepStrictEqual(new AbortSignal().toString(), '[object AbortSignal]');
-
-            proclaim.deepStrictEqual(Object.prototype.toString.call(new AbortSignal()), '[object AbortSignal]');
         });
     });
 });
