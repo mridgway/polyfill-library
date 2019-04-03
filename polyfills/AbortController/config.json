@@ -20,6 +20,7 @@
         "Object.setPrototypeOf",
         "Event",
         "Symbol",
+	"Symbol.toStringTag",
         "WeakMap"
     ],
     "license": "Apache-2.0",
