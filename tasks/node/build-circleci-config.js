@@ -1,7 +1,7 @@
 "use strict";
 
 const path = require('path');
-const fs = require('fs');
+const fs = require('graceful-fs');
 const yaml = require('yaml');
 const globby = require('globby');
 const _ = require('lodash');
@@ -12,7 +12,7 @@ const polyfillsWhichHaveTests = globby.sync(['polyfills/**/tests.js', '!polyfill
     transform: (entry) => entry.replace('polyfills/', '').replace('/tests.js', '').replace(/\//g, '.')
 });
 
-_.chunk(polyfillsWhichHaveTests, 10).map(polyfillsWhichHaveTests => {
+_.chunk(polyfillsWhichHaveTests, 14).map(polyfillsWhichHaveTests => {
     const testCommands = polyfillsWhichHaveTests.map(feature => {
         return {
             run: {
@@ -36,6 +36,7 @@ _.chunk(polyfillsWhichHaveTests, 10).map(polyfillsWhichHaveTests => {
     };
 }).forEach((job, index) => {
     const jobName = `test_${index}`;
+    const previousJob = `test_${index - 1}`;
     circleConfig.jobs[jobName] = job;
     circleConfig.workflows.test.jobs.push({
         [jobName]: {
@@ -47,7 +48,7 @@ _.chunk(polyfillsWhichHaveTests, 10).map(polyfillsWhichHaveTests => {
                     ignore: "master"
                 }
             },
-            requires: ["check_circle_config", "lint_js", "unit_tests", ...Object.keys(circleConfig.jobs).filter(job => job.startsWith('test_') && job !== jobName)]
+            requires: ["check_circle_config", "lint_js", "unit_tests"].concat(index > 0 ? previousJob:[])
         }
     });
 });
